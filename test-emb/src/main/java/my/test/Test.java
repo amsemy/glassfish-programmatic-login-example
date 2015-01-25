@@ -4,6 +4,7 @@ import com.sun.appserv.security.ProgrammaticLogin;
 
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import javax.naming.Binding;
 import javax.naming.Context;
@@ -13,8 +14,16 @@ import javax.naming.NamingException;
 
 public class Test {
 
+    private static Path testHome;
+
     public static void main(String[] args) throws Exception {
-        GlassFishUtils.construct(Paths.get(args[0]));
+        testHome = Paths.get(args[0]);
+
+        Path path = Paths.get(testHome.toString(),
+                "test-emb", "src", "main", "resources", "auth.conf");
+        System.setProperty("java.security.auth.login.config", path.toString());
+
+        GlassFishUtils.construct(testHome);
         try {
             System.out.println();
             System.out.println("Debug 1: Class path");
@@ -44,8 +53,8 @@ public class Test {
 
     private static void listClassPath() {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        URL[] urls = ((URLClassLoader)cl).getURLs();
-        for(URL url: urls){
+        URL[] urls = ((URLClassLoader) cl).getURLs();
+        for (URL url : urls) {
             System.out.println(url.getFile());
         }
     }
@@ -73,6 +82,13 @@ public class Test {
     }
 
     private static void runBar() throws Exception {
+        // It does not always work. System property "java.security.auth.login.config"
+        // must be set before starting the embedded GF server.
+        // http://stackoverflow.com/questions/12284583/all-glassfish-login-modules-stopped-working-after-container-reboot
+        //
+        //   Path path = Paths.get(testHome.toString(),
+        //           "test-emb", "src", "main", "resources", "auth.conf");
+        //   System.setProperty("java.security.auth.login.config", path.toString());
         ProgrammaticLogin pl = new ProgrammaticLogin();
         pl.login("user", "user123".toCharArray());
         InitialContext ic = new InitialContext();

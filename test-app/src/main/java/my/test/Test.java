@@ -4,6 +4,8 @@ import com.sun.appserv.security.ProgrammaticLogin;
 
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 import javax.naming.Binding;
 import javax.naming.Context;
@@ -13,12 +15,14 @@ import javax.naming.NamingException;
 
 public class Test {
 
+    private static Path testHome;
     private static String host = "localhost";
     private static String port = "3700";
 
     public static void main(String[] args) throws Exception {
-        host = (args.length >= 1 ? args[0] : host);
-        port = (args.length >= 2 ? args[1] : port);
+        testHome = Paths.get(args[0]);
+        host = (args.length >= 2 ? args[1] : host);
+        port = (args.length >= 3 ? args[2] : port);
 
         System.out.println();
         System.out.println("Debug 1: Class path");
@@ -47,7 +51,7 @@ public class Test {
                 "com.sun.enterprise.naming");
         p.put(Context.STATE_FACTORIES,
                 "com.sun.corba.ee.impl.presentation.rmi.JNDIStateFactoryImpl");
-        // Doesn't work
+        // Doesn't always work
         //   p.put("org.omg.CORBA.ORBInitialHost", host);
         //   p.put("org.omg.CORBA.ORBInitialPort", port);
         System.setProperty("org.omg.CORBA.ORBInitialHost", host);
@@ -57,8 +61,8 @@ public class Test {
 
     private static void listClassPath() {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        URL[] urls = ((URLClassLoader)cl).getURLs();
-        for(URL url: urls){
+        URL[] urls = ((URLClassLoader) cl).getURLs();
+        for (URL url : urls) {
             System.out.println(url.getFile());
         }
     }
@@ -86,6 +90,10 @@ public class Test {
     }
 
     private static void runBar() throws NamingException {
+        Path path = Paths.get(testHome.toString(),
+                "test-app", "src", "main", "resources", "auth.conf");
+        System.setProperty("java.security.auth.login.config", path.toString());
+
         ProgrammaticLogin pl = new ProgrammaticLogin();
         pl.login("user", "user123".toCharArray());
         InitialContext ic = new InitialContext();

@@ -16,8 +16,7 @@ asadmin create-file-user \
         user
 asadmin deploy $TEST_HOME/test-ear/target/test-ear.ear
 
-java -Djava.security.auth.login.config=$TEST_HOME/test-app/src/main/resources/auth.conf \
-        -jar $TEST_HOME/test-app/target/test-app.jar
+java -jar $TEST_HOME/test-app/target/test-app.jar $TEST_HOME
 
 asadmin undeploy test-ear
 asadmin stop-domain $DOMAIN_NAME
